@@ -1,5 +1,3 @@
-// Trello import script modified to fit the Project Roadmap Template provided by Steve after our company training.
-
 // Set up the Google Spreadsheets dropdown menu
 function onOpen(){
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -9,39 +7,43 @@ function onOpen(){
 
 // Get/update the control values.
 function checkControlValues(requireList, requireBoard) {
-    var col = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("UploadControls").getRange("B3:B7").getValues();
+    var col = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Controls").getRange("C1:C11").getValues();
 
-    var appKey = col[0][0].toString().trim();
+    var appKey = col[2][0].toString().trim();
     if (appKey == "") {
-        return "App Key not found";
+        return "App Key not found. Update Controls sheet.";
     }
     ScriptProperties.setProperty("appKey", appKey);
 
-    var token = col[1][0].toString().trim();
+    var token = col[3][0].toString().trim();
     if (token == "") {
-        return "Token not found";
+        return "Token not found. Update Controls sheet.";
     }
     ScriptProperties.setProperty("token", token);
 
     if (requireBoard) {
-        var bid = col[2][0].toString().trim();
+        var bid = col[4][0].toString().trim();
 
         if(bid == "") {
-            return "Board ID not found";
+            return "Board ID not found. Update Controls sheet.";
         }
         ScriptProperties.setProperty("boardID", bid);
     }
 
     if (requireList) {
-        var lid = col[3][0].toString().trim();
+        var lid = col[5][0].toString().trim();
+        
+        if (lid == "") {
+            return "List ID not found. Update Controls sheet.";
+        }
         ScriptProperties.setProperty("listID", lid);
     }
 
-    var sheetName = col[4][0].toString().trim();
+    var sheetName = col[6][0].toString().trim();
     if (sheetName == "") {
-        return "No sheet selected.";
+        return "No sheet selected. Update Controls sheet.";
     } else if (!SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName)) {
-        return "Sheet not found.";
+        return "Sheet not found. Update Controls sheet.";
     }
     ScriptProperties.setProperty("sheetName", sheetName);
 
@@ -50,22 +52,22 @@ function checkControlValues(requireList, requireBoard) {
 
 // Commit spreadsheet cells to Trello
 function upload() {
-    var statusCol = 0;
-    var clientCol = 1;
-    var epicCol = 2;
-    var titleCol = 4;
-    var commentCol = 5;
-    var mvpCol = 6;
-    var cycleCol = 7;
-    var dueDateCol = 8;
-    var dollarValueCol = 10;
-    var hoursCol = 11;
+    var statusCol = 1;
+    var clientCol = statusCol + 1;
+    var epicCol = statusCol + 2;
+    var titleCol = statusCol + 4;
+    var commentCol = statusCol + 5;
+    var mvpCol = statusCol + 6;
+    var cycleCol = statusCol + 7;
+    var dueDateCol = statusCol + 8;
+    var dollarValueCol = statusCol + 10;
+    var hoursCol = statusCol + 11;
 
     var startRow = 10;
 
     var startTime = new Date();
     Logger.log("Started at:" + startTime);
-    var error = checkControlValues(true, true);
+    var error = checkControlValues();
     if (error != "") {
         Browser.msgBox("ERROR:Values in the Control sheet have not been set. Please fix the following error:\n " + error);
         return;
@@ -121,13 +123,11 @@ function upload() {
 
                 var description = currentRow[commentCol];
                 var descriptiveRowCount = i;
-                var descriptiveRow;
-                var descriptiveStatusCell;
 
                 // Fill in description with use cases that follow it.
                 while (card) {
                     descriptiveRowCount++;
-                    descriptiveRow = rows[descriptiveRowCount];
+                    var descriptiveRow = rows[descriptiveRowCount];
                     if (descriptiveRow[titleCol] != "" && descriptiveRow[epicCol] == "") {
                         // Add use case to card description.
                         if (description == "") {
@@ -136,7 +136,7 @@ function upload() {
                             description += "\n" + descriptiveRow[titleCol];
                         }
                         // Indicate that the use case has been imported.
-                        descriptiveStatusCell = sheet.getRange(descriptiveRowCount + 1, statusCol + 1, 1, 1);
+                        var descriptiveStatusCell = sheet.getRange(descriptiveRowCount + 1, statusCol + 1, 1, 1);
                         descriptiveStatusCell.setValue(".");
                     } else {
                         // Row is empty or is actually a story.
@@ -155,7 +155,7 @@ function upload() {
                     description += "\nOriginal total hour estimate was " + currentRow[hoursCol] + ".";
                 }
 
-                // Get card title, description, point estimate, id, due date, assignees
+                // Set card title, description, point estimate, id, due date, assignees
                 var card = createTrelloCard(currentRow[titleCol], description, currentRow[hoursCol], ScriptProperties.getProperty("listID"), dueDate, "");
 
                 addTrelloLabels(card.id, currentRow[2], existingLabels);
@@ -426,4 +426,3 @@ function addTrelloChecklistToCard(checkListID, cardID) {
 function constructTrelloURL(baseURL) {
     return "https://trello.com/1/"+ baseURL +"?key="+ScriptProperties.getProperty("appKey")+"&token="+ScriptProperties.getProperty("token");
 }
- 
