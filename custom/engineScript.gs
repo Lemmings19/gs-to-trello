@@ -65,12 +65,16 @@ function upload() {
     var dueDateCol = statusCol + 8;
     var dollarValueCol = statusCol + 10;
     var hoursCol = statusCol + 11;
+    var roleCol = statusCol + 13;
 
+    var headerRow = 8;
     var startRow = 10;
+
+    var roleCount = 50;
 
     var startTime = new Date();
     Logger.log("Started at:" + startTime);
-    var error = checkControlValues();
+    var error = checkControlValues(true, true);
     if (error != "") {
         Browser.msgBox("ERROR:Values in the Control sheet have not been set. Please fix the following error:\n " + error);
         return;
@@ -95,6 +99,9 @@ function upload() {
             r = i + 1;
 
             var status = currentRow[statusCol];
+
+            var titles = sheet.getRange(headerRow, roleCol, 1, roleCount).getValues();
+            var hours = sheet.getRange(r, roleCol, 1, roleCount).getValues();
 
             currentTime = new Date();
 
@@ -124,7 +131,7 @@ function upload() {
 
                 partialCount++;
 
-                var description = currentRow[commentCol];
+                var description = currentRow[commentCol] + "\n\n" + "**Yellow Cards**\n\n";
                 var descriptiveRowCount = i;
 
                 // Fill in description with use cases that follow it.
@@ -133,11 +140,8 @@ function upload() {
                     var descriptiveRow = rows[descriptiveRowCount];
                     if (descriptiveRow[titleCol] != "" && descriptiveRow[epicCol] == "") {
                         // Add use case to card description.
-                        if (description == "") {
-                            description = descriptiveRow[titleCol];
-                        } else {
-                            description += "\n" + descriptiveRow[titleCol];
-                        }
+                        description += "- " + descriptiveRow[titleCol] + "\n";
+
                         // Indicate that the use case has been imported.
                         var descriptiveStatusCell = sheet.getRange(descriptiveRowCount + 1, statusCol + 1, 1, 1);
                         descriptiveStatusCell.setValue(".");
@@ -152,11 +156,18 @@ function upload() {
                         break;
                     }
                 }
-                if (description == "") {
-                    description = "Original total hour estimate was " + currentRow[hoursCol] + ".";
-                } else {
-                    description += "\nOriginal total hour estimate was " + currentRow[hoursCol] + ".";
+
+                description += "\n**Hour Estimates**\n\n";
+
+
+                // Fetch all roles with hours and append them to the description.
+                for (var j = 0; j < roleCount; j++) {
+                    if (hours[0][j] != "" && hours[0][j] > 0) {
+                        description += "- **" + titles[0][j] + "** " + hours[0][j] + " hours\n";
+                    }
                 }
+
+                description += "\n**Total Hour Estimate**\n\n- " + currentRow[hoursCol];
 
                 // Set card title, description, point estimate, id, due date, assignees
                 var card = createTrelloCard(currentRow[titleCol], description, currentRow[hoursCol], ScriptProperties.getProperty("listID"), dueDate, "");
