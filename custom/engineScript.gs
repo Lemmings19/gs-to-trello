@@ -1,7 +1,10 @@
 // Set up the Google Spreadsheets dropdown menu
 function onOpen(){
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var menuEntries = [{name: "Display Available Members", functionName: "displayMembers"},{name: "Display Available Boards", functionName: "displayBoards"},{name: "Display Available Lists", functionName: "displayLists"},{name: "Upload Outstanding Backlog Items", functionName: "upload"}];
+    var menuEntries = [{name: "Add stories to Trello", functionName: "upload"},
+        {name: "Display available boards", functionName: "displayBoards"},
+        {name: "Display available lists", functionName: "displayLists"},
+        {name: "Display available members", functionName: "displayMembers"}];
     ss.addMenu("Trello", menuEntries);
 }
 
@@ -103,7 +106,7 @@ function upload() {
             } else if (status == ".") { // Row already processed.
                 Logger.log("Ignoring row " + r + ". Status column indicates already imported.");
             } else if (status == "x") {
-                Browser.msgBox("ERROR: Row " + r + " indicates that it was partially created the last time this script was run. Verify the card in Trello. If the card is unsatisfactory, clear column A to re-import (includes use cases). Set column A in row " + r + " to '.' to skip it. Ending script.");
+                Browser.msgBox("ERROR: Row " + r + " did not finish creation. Verify the card in Trello. Clear column B to re-import. Set column B to '.' to skip.");
                 return;
             } else if (status == "") { // Status cell empty. Import row.
 
@@ -158,7 +161,7 @@ function upload() {
                 // Set card title, description, point estimate, id, due date, assignees
                 var card = createTrelloCard(currentRow[titleCol], description, currentRow[hoursCol], ScriptProperties.getProperty("listID"), dueDate, "");
 
-                addTrelloLabels(card.id, currentRow[2], existingLabels);
+                addTrelloLabels(card.id, currentRow[epicCol], existingLabels);
 
                 // Indicate that this row has been imported.
                 statusCell.setValue(".");
@@ -192,14 +195,14 @@ function displayMembers() {
 
     var header1 = app.createHTML("<b>Member Name</b>");
     var header2 = app.createHTML("<b>Member Id</b>");
-    var grid = app.createGrid(values.length+1, 2).setWidth("100%");
+    var grid = app.createGrid(values.length + 1, 2).setWidth("100%");
     grid.setBorderWidth(5);
     grid.setWidget(0, 0, header1).setWidget(0, 1, header2);
     grid.setCellPadding(5);
 
-    for (var i=values.length-1; i>=0; i--) {
-        grid.setText(i+1, 0, values[i].fullName);
-        grid.setText(i+1, 1, values[i].id);
+    for (var i = values.length - 1; i >= 0; i--) {
+        grid.setText(i + 1, 0, values[i].fullName);
+        grid.setText(i + 1, 1, values[i].id);
     }
 
     var panel = app.createScrollPanel(grid).setAlwaysShowScrollBars(true).setSize("100%", "100%");
@@ -228,14 +231,14 @@ function displayBoards() {
 
     var header1 = app.createHTML("<b>Board Name</b>");
     var header2 = app.createHTML("<b>Board Id</b>");
-    var grid = app.createGrid(values.length+1, 2).setWidth("100%");
+    var grid = app.createGrid(values.length + 1, 2).setWidth("100%");
     grid.setBorderWidth(5);
     grid.setWidget(0, 0, header1).setWidget(0, 1, header2);
     grid.setCellPadding(5);
 
-    for (var i=values.length-1; i>=0; i--) {
-        grid.setText(i+1, 0, values[i].name);
-        grid.setText(i+1, 1, values[i].id);
+    for (var i = values.length - 1; i >= 0; i--) {
+        grid.setText(i + 1, 0, values[i].name);
+        grid.setText(i + 1, 1, values[i].id);
     }
     var panel = app.createScrollPanel(grid).setAlwaysShowScrollBars(true).setSize("100%", "100%");
     app.add(panel);
@@ -255,7 +258,7 @@ function displayLists() {
         return;
     }
 
-    var url = constructTrelloURL("boards/"+ ScriptProperties.getProperty("boardID") + "/lists");
+    var url = constructTrelloURL("boards/" + ScriptProperties.getProperty("boardID") + "/lists");
     var resp = UrlFetchApp.fetch(url, {"method": "get"});
     var values = Utilities.jsonParse(resp.getContentText())
 
@@ -263,14 +266,14 @@ function displayLists() {
 
     var header1 = app.createHTML("<b>List Name</b>");
     var header2 = app.createHTML("<b>List Id</b>");
-    var grid = app.createGrid(values.length+1, 2).setWidth("100%");
+    var grid = app.createGrid(values.length + 1, 2).setWidth("100%");
     grid.setBorderWidth(5);
     grid.setWidget(0, 0, header1).setWidget(0, 1, header2);
     grid.setCellPadding(5);
 
-    for (var i=values.length-1; i>=0; i--) {
-        grid.setText(i+1, 0, values[i].name);
-        grid.setText(i+1, 1, values[i].id);
+    for (var i = values.length - 1; i >= 0; i--) {
+        grid.setText(i + 1, 0, values[i].name);
+        grid.setText(i + 1, 1, values[i].id);
     }
 
     var panel = app.createScrollPanel(grid).setAlwaysShowScrollBars(true).setSize("100%", "100%");
