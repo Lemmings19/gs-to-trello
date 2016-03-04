@@ -9,23 +9,23 @@ function onOpen(){
 }
 
 // Get/update the control values.
-function checkControlValues(requireList, requireBoard) {
-    var col = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Controls").getRange("C1:C11").getValues();
+function checkControlValues(requireList, requireBoard, requireSheet) {
+    var col = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Controls").getRange("C1:C29").getValues();
 
-    var appKey = col[2][0].toString().trim();
+    var appKey = col[4][0].toString().trim();
     if (appKey == "") {
         return "App Key not found. Update Controls sheet.";
     }
     ScriptProperties.setProperty("appKey", appKey);
 
-    var token = col[3][0].toString().trim();
+    var token = col[6][0].toString().trim();
     if (token == "") {
         return "Token not found. Update Controls sheet.";
     }
     ScriptProperties.setProperty("token", token);
 
     if (requireBoard) {
-        var bid = col[4][0].toString().trim();
+        var bid = col[8][0].toString().trim();
 
         if(bid == "") {
             return "Board ID not found. Update Controls sheet.";
@@ -34,7 +34,7 @@ function checkControlValues(requireList, requireBoard) {
     }
 
     if (requireList) {
-        var lid = col[5][0].toString().trim();
+        var lid = col[10][0].toString().trim();
         
         if (lid == "") {
             return "List ID not found. Update Controls sheet.";
@@ -42,13 +42,15 @@ function checkControlValues(requireList, requireBoard) {
         ScriptProperties.setProperty("listID", lid);
     }
 
-    var sheetName = col[6][0].toString().trim();
-    if (sheetName == "") {
-        return "No sheet selected. Update Controls sheet.";
-    } else if (!SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName)) {
-        return "Sheet not found. Update Controls sheet.";
+    if (requireSheet) {
+        var sheetName = col[27][0].toString().trim();
+        if (sheetName == "") {
+            return "No sheet selected. Update Controls sheet.";
+        } else if (!SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName)) {
+            return "Sheet not found. Update Controls sheet.";
+        }
+        ScriptProperties.setProperty("sheetName", sheetName);
     }
-    ScriptProperties.setProperty("sheetName", sheetName);
 
     return "";
 }
@@ -74,7 +76,7 @@ function upload() {
 
     var startTime = new Date();
     Logger.log("Started at:" + startTime);
-    var error = checkControlValues(true, true);
+    var error = checkControlValues(true, true, true);
     if (error != "") {
         Browser.msgBox("ERROR:Values in the Control sheet have not been set. Please fix the following error:\n " + error);
         return;
@@ -192,7 +194,7 @@ function upload() {
 // Displays id's for members which exist in your Trello account.
 function displayMembers() {
 
-    var error = checkControlValues(false,true);
+    var error = checkControlValues(false, true, false);
     if (error != "") {
         Browser.msgBox("ERROR:Values in the Control sheet have not been set. Please fix the following error:\n " + error);
         return;
@@ -228,7 +230,7 @@ function displayMembers() {
 // Displays id's for boards which exist in your Trello account.
 function displayBoards() {
 
-    var error = checkControlValues(false,false);
+    var error = checkControlValues(false, false, false);
     if (error != "") {
         Browser.msgBox("ERROR:Values in the Control sheet have not been set. Please fix the following error:\n " + error);
         return;
@@ -263,7 +265,7 @@ function displayBoards() {
 // Displays id's for checklists which exist in your Trello board.
 function displayLists() {
 
-    var error = checkControlValues(false,true);
+    var error = checkControlValues(false, true, false);
     if (error != "") {
         Browser.msgBox("ERROR:Values in the Control sheet have not been set. Please fix the following error:\n " + error);
         return;
