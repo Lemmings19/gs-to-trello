@@ -25,7 +25,7 @@ function checkControlValues(requireList, requireBoard, requireSheet) {
     ScriptProperties.setProperty("token", token);
 
     if (requireBoard) {
-        var bid = col[8][0].toString().trim();
+        var bid = col[11][0].toString().trim();
 
         if(bid == "") {
             return "Board ID not found. Update Controls sheet.";
@@ -34,7 +34,7 @@ function checkControlValues(requireList, requireBoard, requireSheet) {
     }
 
     if (requireList) {
-        var lid = col[10][0].toString().trim();
+        var lid = col[13][0].toString().trim();
         
         if (lid == "") {
             return "List ID not found. Update Controls sheet.";
@@ -43,7 +43,7 @@ function checkControlValues(requireList, requireBoard, requireSheet) {
     }
 
     if (requireSheet) {
-        var sheetName = col[27][0].toString().trim();
+        var sheetName = col[30][0].toString().trim();
         if (sheetName == "") {
             return "No sheet selected. Update Controls sheet.";
         } else if (!SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName)) {
