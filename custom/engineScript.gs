@@ -10,7 +10,7 @@ function onOpen(){
 
 // Get/update the control values.
 function checkControlValues(requireList, requireBoard, requireSheet) {
-    var col = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Controls").getRange("C1:C29").getValues();
+    var col = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Controls").getRange("C1:C32").getValues();
 
     var appKey = col[4][0].toString().trim();
     if (appKey == "") {
@@ -142,7 +142,13 @@ function upload() {
                     var descriptiveRow = rows[descriptiveRowCount];
                     if (descriptiveRow[titleCol] != "" && descriptiveRow[epicCol] == "") {
                         // Add use case to card description.
-                        description += "- " + descriptiveRow[titleCol] + "\n";
+
+                        // If multiple lines for a usecase, split it into multiple use cases.
+                        var useCases = descriptiveRow[titleCol].split(/\r?\n/);
+
+                        for each (var useCase in useCases) {
+                            description += "- " + useCase + "\n";
+                        }
 
                         // Indicate that the use case has been imported.
                         var descriptiveStatusCell = sheet.getRange(descriptiveRowCount + 1, statusCol + 1, 1, 1);
